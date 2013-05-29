@@ -59,6 +59,8 @@ colours_to_use = [
     '#33FF33',
 ]
 
+ttl_mins_worked = 0
+
 start_date = datetime.date.today()
 start_date_str = ("%d-%02d-%02d" % (start_date.year, start_date.month, start_date.day, ))
 p = subprocess.Popen([callistevents_prog, '-c', 'Pomodoros', '-s', start_date_str ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -79,16 +81,20 @@ for line in lines:
 
             if sta_hr == end_hr:
                 mins = end_mn - sta_mn
+                ttl_mins_worked += mins
                 time_buckets[sta_hr] += float(mins) / 60.0
             else:
                 for h in xrange(sta_hr, end_hr+1):
                     if h == sta_hr:
                         mins = 60.0 - sta_mn
+                        ttl_mins_worked += mins
                         time_buckets[sta_hr] += float(mins) / 60.0
                     elif h == end_hr:
                         mins = end_mn
+                        ttl_mins_worked += mins
                         time_buckets[end_hr] += float(mins) / 60.0
                     else:
+                        ttl_mins_worked += 60
                         time_buckets[h] += 1.0
 
 ## OK, the code following is for generating the plot.
@@ -120,6 +126,10 @@ ax.set_title('Productivity for %s' % (start_date_str, ))
 ax.set_axis_bgcolor('#EEE9E9')
 ax.set_ylim(0, 1.0)
 ax.set_xticks(xrange(0, 24))
+
+hours_worked = int(float(ttl_mins_worked) / 60.0)
+minutes_worked = (ttl_mins_worked % 60)
+ax.text(0.5, 0.9, "Time worked: %d:%02d" % (hours_worked, minutes_worked ), color='#2f4f4f' )
 
 for tick in ax.xaxis.get_major_ticks():
     #tick.label.set_fontsize(14) 
