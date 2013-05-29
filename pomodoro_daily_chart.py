@@ -9,13 +9,39 @@
 # and then create a bar-chart aggregating the work done each hour, in order
 # to show how my productivity looks during the day.
 # 
-# It will create a chart called prod_YYYY-MM-DD.png in the current directory.
+# By default it will create a chart called pomodoro_daily_chart.png in
+# the current directory. You can specify a different output file using
+# the '-o' command-line option.
+#
 import os, sys
 import subprocess
 import datetime
+import argparse
 
 # This is the path to the callistevents program
+# MODIFY THIS TO POINT TO THE RIGHT LOCATION FOR YOU
 callistevents_prog = os.path.expanduser('~/my/bin/callistevents')
+
+parser = argparse.ArgumentParser(description="Generate a bar-chart of your hourly productivity by processing all the Pomodoro entries in your Pomodoro calendar for the current day")
+
+parser.add_argument('-o', nargs='?',
+                    dest='outfile',
+                    default='pomodoro_daily_chart.png',
+                    help='The PNG file containing the chart')
+
+parser.add_argument('-W', nargs='?',
+                    dest='width',
+                    type=int,
+                    default=600,
+                    help='The width in pixels of the PNG file')
+parser.add_argument('-H', nargs='?',
+                    dest='height',
+                    type=int,
+                    default=400,
+                    help='The height in pixels of the PNG file')
+
+args = parser.parse_args()
+
 
 time_buckets = [0.0 for i in xrange(0, 24)]
 
@@ -74,7 +100,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 
 width = 1.0
-fig = figure()
+fig = figure(1, figsize=(float(args.width) / 100.0, float(args.height) / 100.0))
 ax = fig.add_subplot(111)
 rects1 = ax.bar(xrange(0, 24), time_buckets, width,
                     color='r')
@@ -95,4 +121,16 @@ ax.set_axis_bgcolor('#EEE9E9')
 ax.set_ylim(0, 1.0)
 ax.set_xticks(xrange(0, 24))
 
-fig.savefig("prod_%s.png" % (start_date_str, ), format="png")
+for tick in ax.xaxis.get_major_ticks():
+    #tick.label.set_fontsize(14) 
+    # specify integer or one of preset strings, e.g.
+    tick.label.set_fontsize('x-small') 
+    tick.label.set_rotation('vertical')
+
+for tick in ax.yaxis.get_major_ticks():
+    #tick.label.set_fontsize(14) 
+    # specify integer or one of preset strings, e.g.
+    tick.label.set_fontsize('x-small') 
+
+
+fig.savefig(args.outfile, format="png", dpi=100)
